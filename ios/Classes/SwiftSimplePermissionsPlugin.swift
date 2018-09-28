@@ -1,7 +1,6 @@
 import Flutter
 import UIKit
 import AVFoundation
-import Photos
 import CoreLocation
 import Contacts
 
@@ -47,7 +46,7 @@ public class SwiftSimplePermissionsPlugin: NSObject, FlutterPlugin, CLLocationMa
             result("iOS " + UIDevice.current.systemVersion)
             
         case "openSettings":
-            if let url = URL(string: UIApplicationOpenSettingsURLString) {
+            if let url = URL(string: UIApplication.openSettingsURLString) {
                 if UIApplication.shared.canOpenURL(url) {
                     if #available(iOS 10.0, *) {
                         UIApplication.shared.open(url, options: [:], completionHandler: nil)
@@ -75,9 +74,6 @@ public class SwiftSimplePermissionsPlugin: NSObject, FlutterPlugin, CLLocationMa
         case "CAMERA":
             requestCameraPermission(result: result)
             
-        case "PHOTO_LIBRARY":
-            requestPhotoLibraryPermission(result: result)
-            
         case "ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION", "WHEN_IN_USE_LOCATION":
             self.result = result
             requestLocationWhenInUsePermission()
@@ -89,14 +85,9 @@ public class SwiftSimplePermissionsPlugin: NSObject, FlutterPlugin, CLLocationMa
         case "READ_CONTACTS", "WRITE_CONTACTS":
             requestContactPermission(result: result)
             
-        case "READ_SMS":
-            result("ready")
-            
-        case "SEND_SMS":
-            result("ready")
-            
         default:
             result(FlutterMethodNotImplemented)
+            
         }
     }
     
@@ -109,9 +100,6 @@ public class SwiftSimplePermissionsPlugin: NSObject, FlutterPlugin, CLLocationMa
         case "CAMERA":
             result(checkCameraPermission())
             
-        case "PHOTO_LIBRARY":
-            result(checkPhotoLibraryPermission())
-            
         case "ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION", "WHEN_IN_USE_LOCATION":
             result(checkLocationWhenInUsePermission())
             
@@ -120,12 +108,7 @@ public class SwiftSimplePermissionsPlugin: NSObject, FlutterPlugin, CLLocationMa
             
         case "ALWAYS_LOCATION":
             result(checkLocationAlwaysPermission())
-          
-        case "READ_SMS":
-            result(true)
             
-        case "SEND_SMS":
-            result(true)
         default:
             result(FlutterMethodNotImplemented)
             
@@ -144,13 +127,10 @@ public class SwiftSimplePermissionsPlugin: NSObject, FlutterPlugin, CLLocationMa
         case "CAMERA":
             result(getCameraPermissionStatus().rawValue)
             
-        case "PHOTO_LIBRARY":
-            result(getPhotoLibraryPermissionStatus().rawValue)
-            
         case "ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION", "WHEN_IN_USE_LOCATION":
             let status = CLLocationManager.authorizationStatus()
             if (status == .authorizedAlways || status == .authorizedWhenInUse) {
-                result(3)
+                 result(3)
             }
             else {
                 result(status.rawValue)
@@ -167,12 +147,6 @@ public class SwiftSimplePermissionsPlugin: NSObject, FlutterPlugin, CLLocationMa
             else {
                 result(status.rawValue)
             }
-            
-        case "READ_SMS":
-            result(1)
-            
-        case "SEND_SMS":
-            result(1)
             
         default:
             result(FlutterMethodNotImplemented)
@@ -203,8 +177,8 @@ public class SwiftSimplePermissionsPlugin: NSObject, FlutterPlugin, CLLocationMa
     
     private func requestLocationAlwaysPermission() -> Void {
         if (CLLocationManager.authorizationStatus() == .notDetermined) {
-            self.whenInUse = false
-            locationManager.requestAlwaysAuthorization()
+        self.whenInUse = false
+        locationManager.requestAlwaysAuthorization()
         }
         else  {
             self.result?(checkLocationAlwaysPermission())
@@ -212,7 +186,7 @@ public class SwiftSimplePermissionsPlugin: NSObject, FlutterPlugin, CLLocationMa
     }
     
     public func locationManager(_ manager: CLLocationManager,
-                                didChangeAuthorization status: CLAuthorizationStatus) {
+                         didChangeAuthorization status: CLAuthorizationStatus) {
         if (whenInUse)  {
             switch status {
             case .authorizedAlways, .authorizedWhenInUse:
@@ -231,7 +205,7 @@ public class SwiftSimplePermissionsPlugin: NSObject, FlutterPlugin, CLLocationMa
     // Contact
     
     private func getContactPermissionStatus() -> CNAuthorizationStatus {
-        return CNContactStore.authorizationStatus(for: CNEntityType.contacts)
+       return CNContactStore.authorizationStatus(for: CNEntityType.contacts)
     }
     
     private func checkContactPermission() -> Bool {
@@ -265,7 +239,7 @@ public class SwiftSimplePermissionsPlugin: NSObject, FlutterPlugin, CLLocationMa
     //-----------------------------------
     // Camera
     private func checkCameraPermission()-> Bool {
-        return getCameraPermissionStatus() == .authorized
+      return getCameraPermissionStatus() == .authorized
     }
     
     private func getCameraPermissionStatus() -> AVAuthorizationStatus {
@@ -276,22 +250,6 @@ public class SwiftSimplePermissionsPlugin: NSObject, FlutterPlugin, CLLocationMa
     private func requestCameraPermission(result: @escaping FlutterResult) -> Void {
         AVCaptureDevice.requestAccess(for: AVMediaType.video) { response in
             result(response)
-        }
-    }
-    
-    //-----------------------------------
-    // Photo Library
-    private func checkPhotoLibraryPermission()-> Bool {
-        return getPhotoLibraryPermissionStatus() == .authorized
-    }
-    
-    private func getPhotoLibraryPermissionStatus() -> PHAuthorizationStatus {
-        return PHPhotoLibrary.authorizationStatus()
-    }
-    
-    private func requestPhotoLibraryPermission(result: @escaping FlutterResult) {
-        PHPhotoLibrary.requestAuthorization { (status) in
-            result(status == PHAuthorizationStatus.authorized)
         }
     }
 }
